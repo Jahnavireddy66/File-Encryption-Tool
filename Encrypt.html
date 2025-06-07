@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Encrypt | FILE CIPHER</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <style>
+    /* --- Base & Layout --- */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: linear-gradient(135deg, #e0f7fa, #f1f8e9);
+      padding: 20px;
+    }
+    h1 {
+      color: #2c3e50;
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      letter-spacing: 1px;
+    }
+
+    /* --- Card Container --- */
+    .container {
+      background: #fff;
+      width: 100%;
+      max-width: 400px;
+      padding: 30px 20px;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      border-top: 6px solid #4caf50;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .container:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+    }
+
+    /* --- Inputs & Buttons --- */
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+    input:focus {
+      outline: none;
+      border-color: #4caf50;
+      box-shadow: 0 0 6px rgba(76,193,80,0.4);
+    }
+    .btn {
+      border: none;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-encrypt {
+      background: linear-gradient(135deg, #81c784, #66bb6a);
+    }
+    .btn-encrypt:hover {
+      background: linear-gradient(135deg, #66bb6a, #388e3c);
+      transform: scale(1.03);
+    }
+    .btn-back {
+      background: linear-gradient(135deg, #64b5f6, #42a5f5);
+    }
+    .btn-back:hover {
+      background: linear-gradient(135deg, #42a5f5, #1e88e5);
+      transform: scale(1.03);
+    }
+
+    /* --- Output & Footer --- */
+    #output {
+      margin-top: 15px;
+      font-weight: bold;
+      color: #e67e22;
+    }
+    footer {
+      margin-top: auto;
+      padding: 20px 0;
+      font-size: 0.9rem;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Encrypt File</h1>
+
+  <div class="container">
+    <input type="file" id="fileInput">
+    <input type="text" id="keyInput" placeholder="Enter Encryption Key">
+    <button id="encryptButton" class="btn btn-encrypt">Encrypt</button>
+    <button id="backButton" class="btn btn-back" onclick="location.href='index.html'">Back</button>
+    <div id="output"></div>
+  </div>
+
+  <footer>© 2025 FILE CIPHER. All rights reserved.</footer>
+
+  <script>
+    async function readFile(file) {
+      return new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload = () => res(r.result);
+        r.onerror = rej;
+        r.readAsArrayBuffer(file);
+      });
+    }
+
+    function downloadFile(content, filename, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('encryptButton').addEventListener('click', async () => {
+      const file = document.getElementById('fileInput').files[0];
+      const key  = document.getElementById('keyInput').value;
+      const output = document.getElementById('output');
+
+      if (!file || !key) {
+        output.innerText = "Please select a file and enter a key.";
+        return;
+      }
+      output.innerText = `Encrypting "${file.name}"...`;
+
+      try {
+        const MAGIC = "ENCRYPTED_FILE";
+        const data = await readFile(file);
+        const magicBytes = new TextEncoder().encode(MAGIC);
+        const combined = new Uint8Array(magicBytes.length + data.byteLength);
+        combined.set(magicBytes);
+        combined.set(new Uint8Array(data), magicBytes.length);
+
+        const wordArray = CryptoJS.lib.WordArray.create(combined);
+        const encrypted = CryptoJS.AES.encrypt(wordArray, key).toString();
+
+        downloadFile(encrypted, file.name + ".enc", "application/octet-stream");
+        output.innerText = `Encryption successful! Downloaded as "${file.name}.enc"`;
+      } catch {
+        output.innerText = "Encryption failed.";
+      }
+    });
+  </script>
+
+</body>
+</html>
+
+
+
+
+
